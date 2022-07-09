@@ -4,7 +4,7 @@ from PySide2 import QtWidgets, QtGui
 from ui.GetInfo_form import Ui_Form
 
 
-class AppForDB(QtWidgets.QMainWindow):
+class AppForDB(QtWidgets.QWidget):
     """Создание конструктора класса приложения, для выполнения поискового запроса о авиа рейсах"""
 
     def __init__(self, parent=None):
@@ -14,36 +14,16 @@ class AppForDB(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
         self.resize(1200, 800)
         self.setWindowTitle("Поиск информации о рейсе")
-        self.ui.lineEdit_2.editingFinished.connect(self.ChangeStartPoint)
-        self.ui.lineEdit_4.editingFinished.connect(self.ChangeFinishPoint)
-
-
 
         self.initUi()
         self.initDB()
-        self.initTableViewModel()
-        self.ChangeStartPoint()
-        self.ChangeFinishPoint()
+        # self.initTableViewModel()
+        # self.ChangeStartPoint()
+        # self.ChangeFinishPoint()
 
     def initUi(self):
-        self.tableView = QtWidgets.QTableView()
-
-        l = QtWidgets.QVBoxLayout()
-        l.addWidget(self.tableView)
-
-        self.setLayout(l)
-
-    def ChangeStartPoint(self):
-        """Метод устанавливает поиск для StartPoint  посредством запроса к БД, где % % - любая строка,
-        содержащая 0 и более символов """
-
-        print(f"SELECT StartPoint FROM FlySales.RouteDetails  WHERE StartPoint LIKE %{self.ui.lineEdit_2.text()}%")
-
-    def ChangeFinishPoint(self):
-        """Метод устанавливает поиск для FinishPoint  посредством запроса к БД, где % % - любая строка,
-               содержащая 0 и более символов """
-
-        print(f"SELECT FinishPoint FROM FlySales.RouteDetails  WHERE StartPoint LIKE %{self.ui.lineEdit_4.text()}%")
+        pass
+        self.ui.pushButton.clicked.connect(self.initTableViewModel)  # Подключение кнопки из Ui формы
 
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         """Метод выводит предупреждающую информацию при попытке закрытия диалогового окна"""
@@ -77,32 +57,34 @@ class AppForDB(QtWidgets.QMainWindow):
         """Метод для данных передачи и вывода данных, получаемых из запроса от БД в приложение
                 """
         sim = QtGui.QStandardItemModel()  # Модель, содержит данные в двумерном представлении
-        self.cursor.execute('SELECT D.StartPoint, D.FinishPoint, D.TravelTime, D.TotalDistance '
-                            'FROM FlySales.RouteDetails AS D')
+        self.cursor.execute(f"SELECT StartPoint, FinishPoint, TravelTime, TotalDistance"
+                            f" FROM DevDB2022_EVGEGO.FlySales.RouteDetails  "
+                            f"WHERE StartPoint LIKE '%{self.ui.lineEdit_2.text()}%' "
+                            f"AND FinishPoint LIKE '%{self.ui.lineEdit_4.text()}%'")
+
+        # f"WHERE D.StartPoint "
+        # f"LIKE ' % {self.ui.lineEdit_2.text()}% ' ")
+        # f"AND D.FinishPoint LIKE ' % {self.ui.lineEdit_4.text()}%'")
+
         lst = self.cursor.fetchall()
+        print(lst) # Тестовый вывод данных в консоль, если запрос к БД неверный, в консоль выводится пустой список []
+
         for elem in lst:  # Передача данных в модель, формирование элементов колонок таблицы приложения
             item1 = QtGui.QStandardItem(str(elem[0]))
             item2 = QtGui.QStandardItem(str(elem[1]))
             item3 = QtGui.QStandardItem(str(elem[2]))
             item4 = QtGui.QStandardItem(str(elem[3]))
 
-        sim.appendRow([item1, item2, item3, item4])
-        sim.setHorizontalHeaderLabels(['Город отправления', 'Город прибытия', 'Время пути', 'Протяженность пути'])
+            sim.appendRow([item1, item2, item3, item4])
+        sim.setHorizontalHeaderLabels(['Start point', 'Finish point', 'Total time', 'Total distance'])
         # установка наименования таблицы приложения
 
-        self.tableView.setModel(sim)
-        #self.ui.pushButton.clicked.connect(self.)
+        self.ui.tableView.setModel(sim)
+        # self.ui.pushButton.clicked.connect(self.)
 
-        self.tableView.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)  # Выделение строки
-        self.tableView.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)  # Выделение столбца
+        self.ui.tableView.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)  # Выделение строки
+        self.ui.tableView.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)  # Выделение столбца
 
-    def closeEvent2(self, event: QtGui.QCloseEvent) -> None:
-        """Метод выводит предупреждающую информацию при попытке закрытия диалогового окна"""
-        reply = QtWidgets.QMessageBox.question(self,
-                                                   'Поиск информации о рейсах',
-                                                   'Вы действительно хотите закрыть приложение?',
-                                                   QtWidgets.QMessageBox.Yes,
-                                                   QtWidgets.QMessageBox.No)
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication()
