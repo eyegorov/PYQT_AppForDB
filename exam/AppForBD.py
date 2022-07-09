@@ -5,7 +5,7 @@ from ui.GetInfo_form import Ui_Form
 
 
 class AppForDB(QtWidgets.QMainWindow):
-    """Создание конструктора класса приложения"""
+    """Создание конструктора класса приложения, для выполнения поискового запроса о авиа рейсах"""
 
     def __init__(self, parent=None):
         super().__init__(parent)  # ссылка на родительский объект с помощью метода super
@@ -14,11 +14,14 @@ class AppForDB(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
         self.resize(1200, 800)
         self.setWindowTitle("Поиск информации о рейсе")
+        self.ui.lineEdit_2.editingFinished.connect(self.ChangeStartPoint)
+        self.ui.lineEdit_4.editingFinished.connect(self.ChangeFinishPoint)
 
         self.initUi()
         self.initDB()
         self.initTableViewModel()
-        self.ui.pushButton.clicked.connect(self.initTableViewModel)
+        self.ChangeStartPoint()
+        self.ChangeFinishPoint()
 
     def initUi(self):
         self.tableView = QtWidgets.QTableView()
@@ -27,6 +30,25 @@ class AppForDB(QtWidgets.QMainWindow):
         l.addWidget(self.tableView)
 
         self.setLayout(l)
+
+    def ChangeStartPoint(self):
+        """Метод устанавливает поиск для StartPoint  посредством запроса к БД, где % % - любая строка,
+        содержащая 0 и более символов """
+
+        print(f"SELECT StartPoint FROM FlySales.RouteDetails  WHERE StartPoint LIKE %{self.ui.lineEdit_2.text()}%")
+
+    def ChangeFinishPoint(self):
+        """Метод устанавливает поиск для FinishPoint  посредством запроса к БД, где % % - любая строка,
+               содержащая 0 и более символов """
+
+        print(f"SELECT FinishPoint FROM FlySales.RouteDetails  WHERE StartPoint LIKE %{self.ui.lineEdit_4.text()}%")
+
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
+        """Метод выводит предупреждающую информацию при попытке закрытия диалогового окна"""
+        reply = QtWidgets.QMessageBox.question(self,
+                                                   'Поиск информации о рейсах', 'Вы действительно хотите закрыть приложение?',
+                                                   QtWidgets.QMessageBox.Yes,
+                                                   QtWidgets.QMessageBox.No)
 
     def initDB(self):
         """Метод для инициализации подключения к базе данных
@@ -52,15 +74,19 @@ class AppForDB(QtWidgets.QMainWindow):
         """Метод для данных передачи данных, получаемых из запроса от БД в приложение
                 """
         sim = QtGui.QStandardItemModel()  # Модель, содержит данные в двумерном представлении
-        self.cursor.execute("SELECT StartPoint, FinishPoint FROM FlySales.RouteDetails")
+        self.cursor.execute('SELECT D.StartPoint, D.FinishPoint, D.TravelTime, D.TotalDistance '
+                            'FROM FlySales.RouteDetails AS D')
         lst = self.cursor.fetchall()
-        for elem in lst:  # Формирование элементов колонок таблицы приложения
+        for elem in lst:  # Передача данных в модель, формирование элементов колонок таблицы приложения
             item1 = QtGui.QStandardItem(str(elem[0]))
             item2 = QtGui.QStandardItem(str(elem[1]))
+            item3 = QtGui.QStandardItem(str(elem[2]))
+            item4 = QtGui.QStandardItem(str(elem[3]))
 
-        sim.appendRow([item1, item2])
-        sim.setHorizontalHeaderLabels(['Город отправления', 'Город прибытия'])  # установка наименования
-        # колонок приложения
+        sim.appendRow([item1, item2, item3, item4])
+        sim.setHorizontalHeaderLabels(['Город отправления', 'Город прибытия', 'Время пути', 'Протяженность пути'])
+        # установка наименования таблицы приложения
+
         self.tableView.setModel(sim)
 
         self.tableView.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
