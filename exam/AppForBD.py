@@ -17,6 +17,8 @@ class AppForDB(QtWidgets.QMainWindow):
         self.ui.lineEdit_2.editingFinished.connect(self.ChangeStartPoint)
         self.ui.lineEdit_4.editingFinished.connect(self.ChangeFinishPoint)
 
+
+
         self.initUi()
         self.initDB()
         self.initTableViewModel()
@@ -46,9 +48,10 @@ class AppForDB(QtWidgets.QMainWindow):
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         """Метод выводит предупреждающую информацию при попытке закрытия диалогового окна"""
         reply = QtWidgets.QMessageBox.question(self,
-                                                   'Поиск информации о рейсах', 'Вы действительно хотите закрыть приложение?',
-                                                   QtWidgets.QMessageBox.Yes,
-                                                   QtWidgets.QMessageBox.No)
+                                               'Поиск информации о рейсах',
+                                               'Вы действительно хотите закрыть приложение?',
+                                               QtWidgets.QMessageBox.Yes,
+                                               QtWidgets.QMessageBox.No)
 
     def initDB(self):
         """Метод для инициализации подключения к базе данных
@@ -71,7 +74,7 @@ class AppForDB(QtWidgets.QMainWindow):
         # print(request)
 
     def initTableViewModel(self):
-        """Метод для данных передачи данных, получаемых из запроса от БД в приложение
+        """Метод для данных передачи и вывода данных, получаемых из запроса от БД в приложение
                 """
         sim = QtGui.QStandardItemModel()  # Модель, содержит данные в двумерном представлении
         self.cursor.execute('SELECT D.StartPoint, D.FinishPoint, D.TravelTime, D.TotalDistance '
@@ -88,10 +91,18 @@ class AppForDB(QtWidgets.QMainWindow):
         # установка наименования таблицы приложения
 
         self.tableView.setModel(sim)
+        #self.ui.pushButton.clicked.connect(self.)
 
-        self.tableView.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.tableView.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        self.tableView.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)  # Выделение строки
+        self.tableView.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)  # Выделение столбца
 
+    def closeEvent2(self, event: QtGui.QCloseEvent) -> None:
+        """Метод выводит предупреждающую информацию при попытке закрытия диалогового окна"""
+        reply = QtWidgets.QMessageBox.question(self,
+                                                   'Поиск информации о рейсах',
+                                                   'Вы действительно хотите закрыть приложение?',
+                                                   QtWidgets.QMessageBox.Yes,
+                                                   QtWidgets.QMessageBox.No)
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication()
